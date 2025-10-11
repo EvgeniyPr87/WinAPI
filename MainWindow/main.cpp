@@ -60,7 +60,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 		NULL,//exStyles
 		g_sz_WND_CLASS_NAME, //Class name
 		((std::string)(g_sz_WND_CLASS_NAME)+
-		"    " + "[Window size]:"+" " + std::to_string(windowWidth) + "x" + std::to_string(windowHight) +
+		"    "+"[Window size]:"+" " + std::to_string(windowWidth) + "x" + std::to_string(windowHight) +
 		"    "+"[Window position]:"+" " + std::to_string(positionX) + "x" + std::to_string(positionY)).c_str(), //Window title
 		WS_OVERLAPPEDWINDOW,
 		positionX, positionY,//Window position
