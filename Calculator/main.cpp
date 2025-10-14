@@ -1,27 +1,46 @@
 #include<Windows.h>
 #include"resource.h"
+#include<string>
+#include<sstream>
 
 CONST CHAR g_sz_CLASS_NAME[] = "Calc_SPU_411";
 
 
-CONST INT g_i_BUTTON_SIZE =50;
+CONST INT g_i_BUTTON_SIZE =60;
 CONST INT g_i_INTERVAL =2;
 CONST INT g_i_BUTTON_DOUBLE_SIZE =g_i_BUTTON_SIZE*2+g_i_INTERVAL;
 
 CONST INT g_i_START_X = 10;
 CONST INT g_i_START_Y = 10;
 
-CONST INT g_i_SCREEN_WIDTH = (g_i_BUTTON_SIZE + g_i_INTERVAL) * 5;
-CONST INT g_i_SCREEN_HEIGHT = 25;
+CONST INT g_i_SCREEN_WIDTH = (g_i_BUTTON_SIZE + g_i_INTERVAL) * 5-g_i_INTERVAL;
+CONST INT g_i_SCREEN_HEIGHT = g_i_BUTTON_SIZE;
 
 CONST INT g_i_BUTTON_START_X = g_i_START_X;
-CONST INT g_i_BUTTON_START_Y = g_i_START_Y+g_i_SCREEN_HEIGHT+g_i_INTERVAL;
+CONST INT g_i_BUTTON_START_Y = g_i_START_Y+g_i_SCREEN_HEIGHT+g_i_INTERVAL*4;
 
 CONST CHAR g_OPERATIONS[] = "+-*/";
 CONST INT g_i_OPERATIONS_START_X = g_i_BUTTON_START_X+(g_i_BUTTON_SIZE + g_i_INTERVAL)*3;
 
-#define BUTTON_SHIFT_X(shift) g_i_BUTTON_START_X+ (g_i_BUTTON_SIZE+g_i_INTERVAL)*shift
-#define BUTTON_SHIFT_Y(shift) g_i_BUTTON_START_Y+ (g_i_BUTTON_SIZE+g_i_INTERVAL)*shift
+#define BUTTON_SHIFT_X(shift) g_i_BUTTON_START_X+ (g_i_BUTTON_SIZE+g_i_INTERVAL)*(shift)
+#define BUTTON_SHIFT_Y(shift) g_i_BUTTON_START_Y+ (g_i_BUTTON_SIZE+g_i_INTERVAL)*(shift)
+
+//Состояния калькулятора:
+std::string g_s_currentInput = "0";
+std::string g_s_storedNumber = "0";
+CHAR operation = '\0';
+BOOL newUserInput = true;
+
+DOUBLE g_d_Number1 = 0;
+DOUBLE g_d_Number2 = 0;
+
+
+void UpdateDisplay(HWND hEdit, const std::string& text)
+{
+
+	SetWindowText(hEdit, text.c_str());
+}
+
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);//процедура окна
 
@@ -59,9 +78,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 NULL,
 g_sz_CLASS_NAME,
 g_sz_CLASS_NAME,
-WS_OVERLAPPEDWINDOW,
+WS_OVERLAPPEDWINDOW^WS_THICKFRAME^WS_MAXIMIZEBOX,
 CW_USEDEFAULT,CW_USEDEFAULT,
-CW_USEDEFAULT,CW_USEDEFAULT,
+g_i_SCREEN_WIDTH + 2 * g_i_START_X+16,
+g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL)*4+16+32,
 NULL,
 NULL,
 hInstance,
@@ -97,7 +117,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			NULL, "Edit", "",
 			WS_CHILD | WS_VISIBLE | WS_BORDER,
 			10, 10,
-			500, 25,
+			g_i_SCREEN_WIDTH, g_i_SCREEN_HEIGHT,
 			hwnd,
 			(HMENU)IDC_EDIT,
 			GetModuleHandle(NULL),
@@ -153,8 +173,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		(
 			NULL, "Button", ".",
 			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-			g_i_BUTTON_START_X + g_i_BUTTON_DOUBLE_SIZE + g_i_INTERVAL,
-			g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * 3,
+			//g_i_BUTTON_START_X + g_i_BUTTON_DOUBLE_SIZE + g_i_INTERVAL,
+			//g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * 3,
+			BUTTON_SHIFT_X(2),BUTTON_SHIFT_Y(3),
 			g_i_BUTTON_SIZE, g_i_BUTTON_SIZE,
 			hwnd,
 			(HMENU)(IDC_BUTTON_0 + digit),
@@ -190,6 +211,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		for (int i = 0; i < 4; i++)
 		{
 			operation[0] = g_OPERATIONS[i];
+
+
+
 			CreateWindowEx
 			(
 				NULL, "Button", operation,
@@ -206,7 +230,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 		break;
 	case WM_COMMAND:
+	{
+		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
+		switch (LOWORD(wParam))
+		{
+		case IDC_BUTTON_0:
+			if (newUserInput)
+			{
+				g_s_currentInput = "0";
+				newUserInput = false;
+			}
+			else if (g_s_currentInput != "0") g_s_currentInput += '0';
+			UpdateDisplay(hEdit, g_s_currentInput);
+		}
 		break;
+	}
+		return TRUE;
+		
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
