@@ -28,17 +28,112 @@ CONST INT g_i_OPERATIONS_START_X = g_i_BUTTON_START_X+(g_i_BUTTON_SIZE + g_i_INT
 //Состояния калькулятора:
 std::string g_s_currentInput = "0";
 std::string g_s_storedNumber = "0";
-CHAR operation = '\0';
+
+CHAR g_sz_operation = '0';
 BOOL newUserInput = true;
 
-DOUBLE g_d_Number1 = 0;
-DOUBLE g_d_Number2 = 0;
+HWND hEdit=NULL ;
+
+
+
 
 
 void UpdateDisplay(HWND hEdit, const std::string& text)
 {
+	SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)text.c_str());
+}
 
-	SetWindowText(hEdit, text.c_str());
+
+void ProcessingNumbers(HWND hEdit, char symbol)
+{
+	if (newUserInput)
+	{
+		if (g_s_currentInput == "Error" || g_s_currentInput == "0")
+		{
+			g_s_currentInput = "";
+		}
+		else if (!g_s_currentInput.empty())
+		{
+			g_s_currentInput = "";
+			newUserInput = false;
+		}
+	}
+		if (symbol == '.')
+		{
+			if (g_s_currentInput.find('.') ==std::string::npos)
+			{
+				if (newUserInput)
+				{
+					g_s_currentInput = "0.";
+					newUserInput = false;
+				}
+				else
+				{
+					g_s_currentInput += '.';
+					newUserInput = false;
+				}
+			}
+		}
+		else
+		{
+			if (newUserInput)
+			{
+				if (symbol == '0')  g_s_currentInput = "0";
+				else
+				{
+					g_s_currentInput = symbol;
+					newUserInput = false;
+				}
+				}
+			else if (newUserInput == false)
+			{
+				if(symbol=='0')g_s_currentInput += symbol;
+				g_s_currentInput += symbol;
+			}
+				}
+				UpdateDisplay(hEdit, g_s_currentInput);
+		}
+
+
+
+std::string Operation(const std::string& sNumber1, const std::string& sNumber2, char operation)
+{
+	DOUBLE number1 = std::stod(sNumber1);
+	DOUBLE number2 = std::stod(sNumber2);
+	DOUBLE result = 0.0;
+	switch (operation)
+	{
+	case '+': result = number1 + number2; break;
+	case '-': result = number1 - number2; break;
+	case '*': result = number1 * number2; break;
+	case'/': if (number2 != 0.0)
+	{
+		result = number1 / number2; break;
+	}
+		   else
+	{
+		SetWindowText(hEdit, "На ноль делить нельзя");
+	}
+	default: return sNumber2;
+	}
+	std::string sResult = std::to_string(result);;
+	return  sResult;
+}
+
+void Clear()
+{
+	g_s_currentInput = "0";
+	UpdateDisplay(hEdit, g_s_currentInput);
+	g_s_storedNumber = "0";
+	g_sz_operation = '0';
+	newUserInput = true;
+}
+void Delete()
+{
+	if (!g_s_currentInput.empty())  g_s_currentInput.pop_back();
+	if (g_s_currentInput.empty()) { g_s_currentInput = "0"; newUserInput = true; }
+	else if (g_s_currentInput == ".") g_s_currentInput = "0";
+	UpdateDisplay(hEdit, g_s_currentInput);
 }
 
 
@@ -112,17 +207,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
+
 		HWND hEdit = CreateWindowEx
 		(
 			NULL, "Edit", "",
-			WS_CHILD | WS_VISIBLE | WS_BORDER,
+			WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			10, 10,
 			g_i_SCREEN_WIDTH, g_i_SCREEN_HEIGHT,
 			hwnd,
 			(HMENU)IDC_EDIT,
 			GetModuleHandle(NULL),
 			NULL
-		);
+		); 
+		if (hEdit != NULL) { SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str()); }
+		
 		INT digit = 1;
 		CHAR sz_digit[2] = "";
 		for (int i = 6; i >= 0; i -= 3)
@@ -138,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * i/3,
 					g_i_BUTTON_SIZE, g_i_BUTTON_SIZE,
 					hwnd,
-					(HMENU)(IDC_BUTTON_0 + digit),
+					(HMENU)(IDC_BUTTON_0 + digit-1),
 					GetModuleHandle(NULL),
 				NULL
 				);
@@ -231,21 +329,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_COMMAND:
 	{
+		
 		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
 		switch (LOWORD(wParam))
 		{
-		case IDC_BUTTON_0:
-			if (newUserInput)
-			{
-				g_s_currentInput = "0";
-				newUserInput = false;
-			}
-			else if (g_s_currentInput != "0") g_s_currentInput += '0';
-			UpdateDisplay(hEdit, g_s_currentInput);
+		case IDC_BUTTON_0:ProcessingNumbers(hEdit,'0'); break;
+		case IDC_BUTTON_1:ProcessingNumbers(hEdit,'1'); break;
+		case IDC_BUTTON_2:ProcessingNumbers(hEdit,'2'); break;
+		case IDC_BUTTON_3:ProcessingNumbers(hEdit,'3'); break;
+		case IDC_BUTTON_4:ProcessingNumbers(hEdit,'4'); break;
+		case IDC_BUTTON_5:ProcessingNumbers(hEdit,'5'); break;
+		case IDC_BUTTON_6:ProcessingNumbers(hEdit,'6'); break;
+		case IDC_BUTTON_7:ProcessingNumbers(hEdit,'7'); break;
+		case IDC_BUTTON_8:ProcessingNumbers(hEdit,'8'); break;
+		case IDC_BUTTON_9:ProcessingNumbers(hEdit,'9'); break;
+		case IDC_BUTTON_POINT:ProcessingNumbers(hEdit, '.'); break;
+		case IDC_BUTTON_CLR:Clear(); break;
+		case IDC_BUTTON_BSP:Delete(); break;
+		
+		case IDC_BUTTON_PLUS:Operation(g_s_currentInput, g_s_storedNumber, '+'); break;
+		case IDC_BUTTON_MINUS:Operation(g_s_currentInput, g_s_storedNumber, '-'); break;
+		case IDC_BUTTON_ASTER:Operation(g_s_currentInput, g_s_storedNumber, '*'); break;
+		case IDC_BUTTON_SLASH:Operation(g_s_currentInput, g_s_storedNumber, '/'); break;
+		default: return FALSE;
 		}
-		break;
-	}
 		return TRUE;
+	}
+
+	
+
 		
 	case WM_DESTROY:
 		PostQuitMessage(0);
