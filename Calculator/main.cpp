@@ -29,112 +29,23 @@ CONST INT g_i_OPERATIONS_START_X = g_i_BUTTON_START_X+(g_i_BUTTON_SIZE + g_i_INT
 std::string g_s_currentInput = "0";
 std::string g_s_storedNumber = "0";
 
-CHAR g_sz_operation = '0';
+CHAR g_sz_operation = '\0';
 BOOL newUserInput = true;
-
 HWND hEdit=NULL ;
 
 
 
 
 
-void UpdateDisplay(HWND hEdit, const std::string& text)
-{
-	SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)text.c_str());
-}
+//void UpdateDisplay(HWND hEdit, const std::string& text);
 
+void ProcessingNumbers(HWND hEdit, char symbol);
 
-void ProcessingNumbers(HWND hEdit, char symbol)
-{
-	if (newUserInput)
-	{
-		if (g_s_currentInput == "Error" || g_s_currentInput == "0")
-		{
-			g_s_currentInput = "";
-		}
-		else if (!g_s_currentInput.empty())
-		{
-			g_s_currentInput = "";
-			newUserInput = false;
-		}
-	}
-		if (symbol == '.')
-		{
-			if (g_s_currentInput.find('.') ==std::string::npos)
-			{
-				if (newUserInput)
-				{
-					g_s_currentInput = "0.";
-					newUserInput = false;
-				}
-				else
-				{
-					g_s_currentInput += '.';
-					newUserInput = false;
-				}
-			}
-		}
-		else
-		{
-			if (newUserInput)
-			{
-				if (symbol == '0')  g_s_currentInput = "0";
-				else
-				{
-					g_s_currentInput = symbol;
-					newUserInput = false;
-				}
-				}
-			else if (newUserInput == false)
-			{
-				if(symbol=='0')g_s_currentInput += symbol;
-				g_s_currentInput += symbol;
-			}
-				}
-				UpdateDisplay(hEdit, g_s_currentInput);
-		}
+std::string Operation(const std::string& sNumber1, const std::string& sNumber2, char operation);
 
+void Clear();
 
-
-std::string Operation(const std::string& sNumber1, const std::string& sNumber2, char operation)
-{
-	DOUBLE number1 = std::stod(sNumber1);
-	DOUBLE number2 = std::stod(sNumber2);
-	DOUBLE result = 0.0;
-	switch (operation)
-	{
-	case '+': result = number1 + number2; break;
-	case '-': result = number1 - number2; break;
-	case '*': result = number1 * number2; break;
-	case'/': if (number2 != 0.0)
-	{
-		result = number1 / number2; break;
-	}
-		   else
-	{
-		SetWindowText(hEdit, "На ноль делить нельзя");
-	}
-	default: return sNumber2;
-	}
-	std::string sResult = std::to_string(result);;
-	return  sResult;
-}
-
-void Clear()
-{
-	g_s_currentInput = "0";
-	UpdateDisplay(hEdit, g_s_currentInput);
-	g_s_storedNumber = "0";
-	g_sz_operation = '0';
-	newUserInput = true;
-}
-void Delete()
-{
-	if (!g_s_currentInput.empty())  g_s_currentInput.pop_back();
-	if (g_s_currentInput.empty()) { g_s_currentInput = "0"; newUserInput = true; }
-	else if (g_s_currentInput == ".") g_s_currentInput = "0";
-	UpdateDisplay(hEdit, g_s_currentInput);
-}
+void Delete();
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);//процедура окна
@@ -207,6 +118,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
+		
+
 
 		HWND hEdit = CreateWindowEx
 		(
@@ -262,7 +175,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			g_i_BUTTON_START_X, g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * 3,
 			g_i_BUTTON_DOUBLE_SIZE, g_i_BUTTON_SIZE,
 			hwnd,
-			(HMENU)(IDC_BUTTON_0+digit),
+			(HMENU)(IDC_BUTTON_0),
 			GetModuleHandle(NULL),
 			NULL
 			);
@@ -276,7 +189,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			BUTTON_SHIFT_X(2),BUTTON_SHIFT_Y(3),
 			g_i_BUTTON_SIZE, g_i_BUTTON_SIZE,
 			hwnd,
-			(HMENU)(IDC_BUTTON_0 + digit),
+			(HMENU)(IDC_BUTTON_POINT),
 			GetModuleHandle(NULL),
 			NULL
 		);
@@ -289,7 +202,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			g_i_BUTTON_SIZE, g_i_BUTTON_SIZE,
 			hwnd,
 			(HMENU)IDC_BUTTON_CLR,
-			GetModuleHandle(NULL),
+			GetModuleHandle(NULL), 
 			NULL
 		);
 
@@ -320,7 +233,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE+g_i_INTERVAL) * (3 - i),
 				g_i_BUTTON_SIZE, g_i_BUTTON_SIZE,
 				hwnd,
-				(HMENU)(IDC_BUTTON_PLUS + 1),
+				(HMENU)(IDC_BUTTON_PLUS +1),
 				GetModuleHandle(NULL),
 				NULL
 			);
@@ -329,6 +242,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_COMMAND:
 	{
+		INT wmId = LOWORD(wParam);
 		
 		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
 		switch (LOWORD(wParam))
@@ -347,16 +261,55 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case IDC_BUTTON_CLR:Clear(); break;
 		case IDC_BUTTON_BSP:Delete(); break;
 		
-		case IDC_BUTTON_PLUS:Operation(g_s_currentInput, g_s_storedNumber, '+'); break;
-		case IDC_BUTTON_MINUS:Operation(g_s_currentInput, g_s_storedNumber, '-'); break;
-		case IDC_BUTTON_ASTER:Operation(g_s_currentInput, g_s_storedNumber, '*'); break;
-		case IDC_BUTTON_SLASH:Operation(g_s_currentInput, g_s_storedNumber, '/'); break;
+		case IDC_BUTTON_PLUS:
+		case IDC_BUTTON_MINUS:
+		case IDC_BUTTON_ASTER:
+		case IDC_BUTTON_SLASH:
+		{
+			if (g_sz_operation != '\0')
+			{
+				g_s_currentInput = Operation(g_s_storedNumber, g_s_currentInput, g_sz_operation);
+				if (g_s_storedNumber == "Error")
+				{
+					SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+					g_sz_operation = '\0';
+					newUserInput = true;
+				}
+				else
+				{
+					SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+					g_s_currentInput = g_s_storedNumber;
+				}
+			}
+			else if (!g_s_currentInput.empty())
+			{
+				g_s_storedNumber = g_s_currentInput;
+			}
+			if (wmId==IDC_BUTTON_PLUS) g_sz_operation = '+';
+			else if (wmId == IDC_BUTTON_MINUS) g_sz_operation = '-';
+			else if (wmId == IDC_BUTTON_ASTER) g_sz_operation = '*';
+			else if (wmId == IDC_BUTTON_SLASH) g_sz_operation = '/';
+			newUserInput = true;
+		}
+		break;
+
+		case IDC_BUTTON_EQUAL:
+			if (g_sz_operation != '\0' && g_s_currentInput != "Error")
+			{
+				g_s_currentInput = Operation(g_s_currentInput, g_s_storedNumber, g_sz_operation);
+				SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+
+				g_s_storedNumber = g_s_currentInput;
+				g_sz_operation = '\0';
+				newUserInput = true;
+			}
+			else if (g_s_currentInput == "Error") SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+			break;
+
 		default: return FALSE;
 		}
 		return TRUE;
 	}
-
-	
 
 		
 	case WM_DESTROY:
@@ -368,4 +321,87 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 	return FALSE;
+}
+
+void ProcessingNumbers(HWND hEdit, char symbol)
+{
+	if (newUserInput)
+	{
+		if ( g_s_currentInput == "0") g_s_currentInput = "";
+		
+		else if (!g_s_currentInput.empty())
+		{
+			g_s_currentInput = "";
+			newUserInput = false;
+		}
+	}
+	if (symbol == '.')
+	{
+		if (g_s_currentInput.find('.') == std::string::npos)
+		{
+			if (newUserInput)
+			{
+				g_s_currentInput = "0.";
+				newUserInput = false;
+			}
+			else
+			{
+				g_s_currentInput += '.';
+				newUserInput = false;
+			}
+		}
+	}
+	else
+	{
+		if (newUserInput)
+		{
+			if (symbol == '0')  g_s_currentInput = "0";
+			else
+			{
+				g_s_currentInput = symbol;
+				newUserInput = false;
+			}
+		}
+		else if (newUserInput == false) g_s_currentInput += symbol;
+	}
+	SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+}
+
+
+
+std::string Operation(const std::string& sNumber1, const std::string& sNumber2, char g_sz_operation)
+{
+	DOUBLE number1 = std::stod(sNumber1);
+	DOUBLE number2 = std::stod(sNumber2);
+	DOUBLE result = 0;
+	switch (g_sz_operation)
+	{
+	case '+': result = number1 + number2; break;
+	case '-': result = number1 - number2; break;
+	case '*': result = number1 * number2; break;
+	case'/': if (number2 != 0)
+	{
+		result = number1 / number2; break;
+	}
+		
+	default: return "Error";
+	}
+	std::string sResult = std::to_string(result);;
+	return  sResult;
+}
+
+void Clear()
+{
+	g_s_currentInput = "0";
+	g_s_storedNumber = "0";
+	g_sz_operation = '\0';
+	SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
+	newUserInput = true;
+}
+void Delete()
+{
+	if (!g_s_currentInput.empty())  g_s_currentInput.pop_back();
+	if (g_s_currentInput.empty()) { g_s_currentInput = "0"; newUserInput = true; }
+	else if (g_s_currentInput == ".") g_s_currentInput = "0";
+	SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)g_s_currentInput.c_str());
 }
