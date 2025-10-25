@@ -226,35 +226,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 		break;
-	case WM_COMMAND | WM_KEYDOWN:
+	case WM_COMMAND :
 	{
 		CONST INT SIZE = 256;
 		CHAR sz_display[SIZE] = {};
 		CHAR sz_digit[2] = {};
 		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
-		INT vkCode = (int)wParam;
 		SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_display);
-		if (LOWORD(wParam) >= IDC_BUTTON_0 || vkCode=='0' && LOWORD(wParam) <= IDC_BUTTON_9 || vkCode=='9')
+		if (LOWORD(wParam) >= IDC_BUTTON_0 && LOWORD(wParam) <= IDC_BUTTON_9)
 		{
 			if (input_operation)
 			{
 				sz_display[0] = 0;
-				vkCode == '0';
 				input_operation = FALSE;
 			}
-			if(sz_digit[0] = LOWORD(wParam) - IDC_BUTTON_0 + 48 );
-			
+			if(sz_digit[0] = LOWORD(wParam) - IDC_BUTTON_0 + 48 );	
 			if (strcmp(sz_display, "0"))
 				strcat(sz_display, sz_digit);
-
 			else
 				strcpy(sz_display, sz_digit);
 			SendMessage(hEdit, WM_SETTEXT , 0, (LPARAM)sz_display);
-			
-
-			
-			
-			
 			input = TRUE;
 		}
 		if (LOWORD(wParam) == IDC_BUTTON_POINT && strchr(sz_display, '.') == NULL)
@@ -262,7 +253,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				strcat(sz_display, ".");
 				SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_display);
 		
-				
 		}
 		if (LOWORD(wParam) == IDC_BUTTON_BSP)
 		{
@@ -305,6 +295,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 		break;
+
+	case WM_KEYDOWN:
+		INT vkCode = (INT)wParam;
+		CHAR processedKey = '\0';
+
+		if (vkCode >= '0' && vkCode <= '9')
+			processedKey = '\0';
+		else if (vkCode == VK_DECIMAL)
+			processedKey = '.';
+		else if(vkCode == VK_ADD) processedKey = '+';
+		else if(vkCode == VK_SUBTRACT) processedKey = '-';
+		else if(vkCode == VK_MULTIPLY) processedKey = '*';
+		else if(vkCode == VK_SEPARATOR) processedKey = '/';
+		else if(vkCode == VK_RETURN) processedKey = '=';
+		else if(vkCode == VK_BACK) processedKey = 'C';
+
+		if(processedKey !='\0')
 		
 	case WM_DESTROY:
 		PostQuitMessage(0);
