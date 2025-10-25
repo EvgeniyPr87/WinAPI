@@ -226,26 +226,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 		break;
-	case WM_COMMAND:
+	case WM_COMMAND | WM_KEYDOWN:
 	{
 		CONST INT SIZE = 256;
 		CHAR sz_display[SIZE] = {};
 		CHAR sz_digit[2] = {};
 		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
+		INT vkCode = (int)wParam;
 		SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_display);
-		if (LOWORD(wParam) >= IDC_BUTTON_0 && LOWORD(wParam) <= IDC_BUTTON_9)
+		if (LOWORD(wParam) >= IDC_BUTTON_0 || vkCode=='0' && LOWORD(wParam) <= IDC_BUTTON_9 || vkCode=='9')
 		{
 			if (input_operation)
 			{
 				sz_display[0] = 0;
+				vkCode == '0';
 				input_operation = FALSE;
 			}
-			sz_digit[0] = LOWORD(wParam) - IDC_BUTTON_0 + 48;
+			if(sz_digit[0] = LOWORD(wParam) - IDC_BUTTON_0 + 48 );
+			
 			if (strcmp(sz_display, "0"))
 				strcat(sz_display, sz_digit);
+
 			else
 				strcpy(sz_display, sz_digit);
-			SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_display);
+			SendMessage(hEdit, WM_SETTEXT , 0, (LPARAM)sz_display);
+			
+
+			
+			
+			
 			input = TRUE;
 		}
 		if (LOWORD(wParam) == IDC_BUTTON_POINT && strchr(sz_display, '.') == NULL)
