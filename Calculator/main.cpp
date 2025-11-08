@@ -3,10 +3,12 @@
 #include"resource.h"
 #include<float.h>
 #include<sstream>
+#include "Resource-only DLL.h"
 
 //CONST INT SIZE = 256;
 
 CONST CHAR g_sz_CLASS_NAME[] = "Calc_SPU_411";
+HINSTANCE hThemesDLL = NULL;
 
 
 
@@ -306,8 +308,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sprintf(sz_display, "%g", a);
 			SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_display);
 		}
+
+		std::string g_currentTheme;
+		VOID ApplyTheme(const std::string& themeName);
+
+		if (LOWORD(wParam == ID_THEME_CHOICE_SB))
+		{
+			g_currentTheme = "Square Blue";
+			ApplyTheme(g_currentTheme); 
+			return TRUE;
+		}
+		if (LOWORD(wParam == ID_THEME_CHOICE_MM))
+		{
+			g_currentTheme = "Metal Mistral";
+			ApplyTheme(g_currentTheme);
+			return TRUE;
+		}
+		
+
 	}
 		break;
+	
 		
 	case WM_KEYDOWN:
 	{
@@ -420,6 +441,42 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	}
 	break;
+
+	case WM_CONTEXTMENU:
+	{
+		HWND hwndContextMenu = (HWND)wParam;
+		POINT pt;
+		pt.x = LOWORD(lParam);
+		pt.y = HIWORD(lParam);
+		if (pt.x == -1 && pt.y == -1)
+		{
+			GetCursorPos(&pt);
+		}
+		HMENU hSubMenu = CreatePopupMenu();
+		if (hSubMenu)
+		{
+			AppendMenu(hSubMenu, MF_POPUP, (UINT_PTR)hSubMenu, "Тема оформления");
+			AppendMenu(hSubMenu, MF_STRING, ID_THEME_CHOICE_MM, "   Металл-тема");
+			AppendMenu(hSubMenu, MF_SEPARATOR, 0, "");
+			AppendMenu(hSubMenu, MF_STRING, ID_THEME_CHOICE_SB, "   Голубая тема");
+		TrackPopupMenu
+		(
+			hSubMenu,
+			TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+			pt.x,
+			pt.y,
+			HIWORD(lParam),
+			hwnd,
+			NULL
+		);
+
+
+
+		DestroyMenu(hSubMenu);
+		}
+		return 0;
+	}
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -447,5 +504,44 @@ VOID SetSkin(HWND hwnd, CONST CHAR SZ_SKIN[])
 			LR_LOADFROMFILE
 		);
 		SendMessage(GetDlgItem(hwnd, IDC_BUTTON_0 + i), BM_SETIMAGE, 0, (LPARAM)hBitmap);
+	}
+}
+
+BOOL ThemesDllLoad()
+{
+	if (hThemesDLL == NULL)
+	{
+		hThemesDLL = LoadLibraryExW(L"ThemesDLL.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+	}
+	return TRUE;
+}
+
+VOID ApplyTheme(const std::string& themeName)
+{
+	if (themeName == "Square Blue")
+	{
+		HBITMAP hBtn0_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn1_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn2_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn3_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn4_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn5_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn6_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn7_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn8_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn9_SB = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+	}
+	else if (themeName == "Metal Mistral")
+	{
+		HBITMAP hBtn0_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn1_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn2_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn3_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn4_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn5_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn6_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn7_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn8_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
+		HBITMAP hBtn9_MM = (HBITMAP)LoadImage(hThemesDLL, MAKEINTRESOURCE(IDB_BUTTON_0_SB), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE);
 	}
 }
